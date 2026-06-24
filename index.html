@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VoiceHub — مركز القراءة الصوتية</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1A2E;--navy2:#112240;--navy3:#162d50;--navy4:#1e3d68;
+  --gold:#C9A84C;--gold2:#F0C14B;--gold3:#FFE08A;
+  --text:#EDE4CC;--muted:#7A8FA8;
+  --danger:#e05252;--success:#4ecb8d;
+  --r:14px;--sh:0 8px 32px rgba(0,0,0,.5);
+}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--navy);color:var(--text);min-height:100vh;overflow-x:hidden;direction:rtl}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 65% 45% at 85% 8%,rgba(201,168,76,.13) 0%,transparent 70%),
+             radial-gradient(ellipse 55% 55% at 8% 92%,rgba(201,168,76,.09) 0%,transparent 70%)}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-track{background:var(--navy)}
+::-webkit-scrollbar-thumb{background:rgba(201,168,76,.35);border-radius:10px}
+
+/* HEADER */
+header{position:relative;z-index:10;text-align:center;padding:26px 20px 6px}
+.logo-wrap{display:inline-flex;align-items:center;gap:12px;margin-bottom:5px}
+.logo-icon{width:52px;height:52px;border-radius:50%;font-size:24px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(201,168,76,.55)}
+header h1{font-size:2.1rem;font-weight:900;background:linear-gradient(90deg,var(--gold2),var(--gold3),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub-ar{color:var(--gold);font-size:.86rem;margin-top:2px;opacity:.85}
+.sub-en{color:var(--muted);font-size:.76rem;margin-top:1px;direction:ltr}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.69rem;font-weight:700;border-radius:50px;padding:3px 10px;margin-top:5px}
+.chip-green{color:var(--success);background:rgba(78,203,141,.1);border:1px solid rgba(78,203,141,.3)}
+.chip-gold{color:var(--gold2);background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3)}
+.dot{width:7px;height:7px;border-radius:50%;animation:pulse 1.4s infinite}
+.dot-g{background:var(--success)}.dot-o{background:var(--gold2)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* TABS */
+.tabs-wrap{position:relative;z-index:10;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:16px 16px 0}
+.tab-btn{background:var(--navy2);color:var(--muted);border:1.5px solid transparent;border-radius:50px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:7px}
+.tab-btn:hover{color:var(--gold2);border-color:var(--gold);background:var(--navy3)}
+.tab-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);box-shadow:0 4px 16px rgba(201,168,76,.4)}
+.tnum{background:rgba(255,255,255,.22);border-radius:50%;width:20px;height:20px;font-size:.68rem;display:flex;align-items:center;justify-content:center;font-weight:900}
+
+/* PANELS */
+.panel-container{position:relative;z-index:10;max-width:1020px;margin:18px auto 50px;padding:0 14px}
+.panel{display:none;animation:fadeUp .3s ease}
+.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARD */
+.card{background:var(--navy2);border:1px solid rgba(201,168,76,.18);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:14px}
+.card-title{font-size:1.1rem;font-weight:800;color:var(--gold2);margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.card-sub{font-size:.78rem;color:var(--muted);margin-bottom:14px}
+
+/* DROP ZONE */
+.drop-zone{border:2px dashed rgba(201,168,76,.35);border-radius:var(--r);padding:22px 16px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(201,168,76,.03);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--gold2);background:rgba(201,168,76,.07)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:2.2rem;margin-bottom:6px}
+.drop-zone p{color:var(--muted);font-size:.83rem}
+.drop-zone p strong{color:var(--gold2)}
+
+/* FORM */
+select,textarea,input[type=text],input[type=password]{background:var(--navy3);color:var(--text);border:1px solid rgba(201,168,76,.26);border-radius:8px;padding:7px 11px;font-size:.84rem;outline:none;font-family:inherit;transition:border .2s}
+select:focus,textarea:focus,input:focus{border-color:var(--gold)}
+textarea{resize:vertical;width:100%;line-height:1.75}
+label{font-size:.76rem;color:var(--muted);display:block;margin-bottom:3px}
+.ctrl-group{display:flex;flex-direction:column}
+.ctrl-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;align-items:flex-end}
+
+/* RANGE */
+input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border-radius:10px;cursor:pointer;border:none;padding:0;background:linear-gradient(to right,var(--gold) 0%,var(--gold) 50%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.12) 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold2);cursor:pointer;box-shadow:0 0 5px rgba(201,168,76,.6)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border:none;border-radius:50px;padding:9px 20px;font-size:.85rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 3px 12px rgba(201,168,76,.3)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(201,168,76,.48)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.38;pointer-events:none}
+.btn-out{background:transparent;border:1.5px solid var(--gold);color:var(--gold2);box-shadow:none}
+.btn-out:hover{background:rgba(201,168,76,.09)}
+.btn-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;align-items:center}
+
+/* PDF LAYOUT */
+.pdf-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:700px){.pdf-layout{grid-template-columns:1fr}}
+.pdf-iframe-wrap{background:#1e1e1e;border-radius:12px;overflow:hidden;border:1px solid rgba(201,168,76,.18);min-height:500px;display:flex;flex-direction:column}
+.pdf-iframe-wrap iframe{width:100%;flex:1;border:none;min-height:480px}
+.pdf-iframe-bar{background:rgba(0,0,0,.4);padding:8px 13px;font-size:.73rem;color:var(--gold3);font-weight:700;display:flex;align-items:center;gap:7px;direction:ltr;flex-shrink:0}
+.pdf-right{display:flex;flex-direction:column;gap:12px}
+
+/* ARABIC VOICE PICKER */
+.voice-panel{background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.14);border-radius:11px;padding:13px}
+.vp-title{font-size:.77rem;color:var(--gold2);font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:5px}
+.voice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;max-height:210px;overflow-y:auto}
+.vc{background:var(--navy3);border:1.5px solid transparent;border-radius:9px;padding:8px 11px;cursor:pointer;transition:all .18s}
+.vc:hover{border-color:var(--gold)}
+.vc.sel{border-color:var(--gold2);background:rgba(201,168,76,.09)}
+.vc-flag{font-size:.95rem}
+.vc-name{font-size:.79rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vc-lang{font-size:.65rem;color:var(--muted)}
+.vc-q{font-size:.6rem;padding:1px 6px;border-radius:50px;font-weight:700;margin-top:2px;display:inline-block}
+.q-best{background:rgba(78,203,141,.18);color:var(--success);border:1px solid rgba(78,203,141,.35)}
+.q-good{background:rgba(201,168,76,.14);color:var(--gold2);border:1px solid rgba(201,168,76,.28)}
+
+/* AUDIO PLAYER */
+.player-box{background:linear-gradient(135deg,var(--navy3),var(--navy4));border:1px solid rgba(201,168,76,.22);border-radius:13px;padding:14px 16px}
+.player-head{font-size:.76rem;color:var(--gold3);font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pg-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.26);border-radius:50px;padding:2px 9px;font-size:.68rem;color:var(--gold3)}
+.prog-wrap{cursor:pointer;margin-bottom:4px}
+.prog-track{height:7px;background:rgba(255,255,255,.09);border-radius:10px;overflow:hidden}
+.prog-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0%;transition:width .25s linear}
+.prog-times{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-top:3px;direction:ltr}
+.player-ctrl{display:flex;align-items:center;justify-content:center;gap:9px;margin:11px 0 8px;flex-wrap:wrap}
+.pc{background:rgba(201,168,76,.11);border:1.5px solid rgba(201,168,76,.28);color:var(--gold2);border-radius:50%;width:39px;height:39px;font-size:.95rem;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center}
+.pc:hover{background:rgba(201,168,76,.22);transform:scale(1.08)}
+.pc:disabled{opacity:.32;pointer-events:none}
+.pc.pp{width:50px;height:50px;font-size:1.3rem;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent;box-shadow:0 3px 14px rgba(201,168,76,.42)}
+.pc.pp:hover{transform:scale(1.1)}
+.vol-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:4px}
+.vol-ic{color:var(--gold);font-size:.95rem;cursor:pointer;user-select:none}
+.player-stat{text-align:center;font-size:.72rem;color:var(--muted);margin-top:6px;min-height:15px;direction:rtl}
+.eng-badge{font-size:.69rem;font-weight:700;padding:2px 8px;border-radius:50px}
+.eb-ms{background:rgba(78,203,141,.13);color:var(--success);border:1px solid rgba(78,203,141,.3)}
+.eb-err{background:rgba(224,82,82,.1);color:var(--danger);border:1px solid rgba(224,82,82,.28)}
+.seg-status{font-size:.71rem;color:var(--muted);text-align:center;margin-top:4px;min-height:14px}
+
+/* ══ OFFLINE DOWNLOAD PANEL ══ */
+.offline-panel{
+  background:linear-gradient(135deg,rgba(78,203,141,.07),rgba(78,203,141,.03));
+  border:1.5px solid rgba(78,203,141,.25);
+  border-radius:12px;padding:14px 16px;margin-top:10px;
+}
+.offline-title{
+  font-size:.82rem;font-weight:800;color:var(--success);
+  margin-bottom:6px;display:flex;align-items:center;gap:7px;
+}
+.offline-sub{font-size:.72rem;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.dl-grid{display:flex;flex-direction:column;gap:7px}
+.dl-row{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 11px;background:var(--navy3);
+  border-radius:9px;border:1px solid rgba(255,255,255,.06);
+  flex-wrap:wrap;
+}
+.dl-row-info{flex:1;min-width:120px}
+.dl-pg-name{font-size:.8rem;font-weight:700;color:var(--text)}
+.dl-pg-chars{font-size:.68rem;color:var(--muted)}
+.dl-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,var(--success),#3ab87a);
+  color:#fff;border:none;border-radius:50px;
+  padding:6px 14px;font-size:.76rem;font-weight:700;
+  cursor:pointer;transition:all .18s;white-space:nowrap;
+  text-decoration:none;
+}
+.dl-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(78,203,141,.4)}
+.dl-btn:disabled{opacity:.4;pointer-events:none}
+.dl-btn.dl-all{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy)}
+.dl-btn.dl-all:hover{box-shadow:0 4px 12px rgba(201,168,76,.45)}
+.dl-progress{
+  height:4px;border-radius:10px;background:rgba(255,255,255,.08);
+  overflow:hidden;margin-top:4px;display:none;
+}
+.dl-progress.show{display:block}
+.dl-progress-fill{height:100%;border-radius:10px;background:var(--success);width:0%;transition:width .3s}
+.offline-info{font-size:.7rem;color:var(--muted);margin-top:8px;line-height:1.5;direction:rtl}
+
+/* ══ OFFLINE PLAYER (for downloaded files) ══ */
+.offline-player-box{
+  background:linear-gradient(135deg,rgba(201,168,76,.07),rgba(201,168,76,.04));
+  border:1.5px solid rgba(201,168,76,.25);
+  border-radius:12px;padding:14px 16px;margin-top:10px;
+}
+.offline-player-title{font-size:.82rem;font-weight:800;color:var(--gold2);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+#offline-audio{width:100%;border-radius:8px;accent-color:var(--gold2);margin-top:4px}
+
+/* LIVE TEXT */
+.text-card{background:var(--navy);border:1px solid rgba(201,168,76,.18);border-radius:11px;overflow:hidden;flex:1;display:flex;flex-direction:column;min-height:180px}
+.text-head{background:rgba(201,168,76,.07);padding:8px 13px;font-size:.73rem;color:var(--gold2);font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.text-body{padding:14px 16px;overflow-y:auto;max-height:280px;font-size:1rem;line-height:2;flex:1;scroll-behavior:smooth}
+.w{display:inline;border-radius:3px;transition:background .12s,color .12s}
+.w.aw{background:var(--gold2);color:var(--navy);border-radius:4px;padding:0 3px;font-weight:700;box-shadow:0 0 7px rgba(240,193,75,.45)}
+.w.dw{opacity:.4}
+
+/* TRANSLATION */
+.trans-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:620px){.trans-grid{grid-template-columns:1fr}}
+.tbox{display:flex;flex-direction:column;gap:5px}
+.tbox-lbl{font-size:.76rem;color:var(--gold3);font-weight:700}
+textarea.tarea{min-height:190px}
+
+/* BRIEF */
+.brief-out{background:var(--navy3);border:1px solid rgba(201,168,76,.14);border-radius:var(--r);padding:16px;margin-top:10px;min-height:130px;direction:rtl;text-align:right;font-size:.95rem;line-height:1.9;color:var(--text);position:relative}
+.brief-out.empty::after{content:'ستظهر هنا نقاط الملخص...';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.86rem}
+.brief-point{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px;padding:9px 12px;background:rgba(201,168,76,.06);border-radius:8px;border-right:3px solid var(--gold)}
+.brief-num{color:var(--gold2);font-weight:900;font-size:.94rem;flex-shrink:0;min-width:20px;text-align:center}
+.brief-text{flex:1;font-size:.9rem;line-height:1.82}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:.71rem;font-weight:700}
+.bg-gold{background:rgba(201,168,76,.13);color:var(--gold2);border:1px solid rgba(201,168,76,.28)}
+.bg-green{background:rgba(78,203,141,.13);color:var(--success);border:1px solid rgba(78,203,141,.28)}
+.bg-red{background:rgba(224,82,82,.13);color:var(--danger);border:1px solid rgba(224,82,82,.28)}
+.quality-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:50px;font-size:.72rem;font-weight:700;margin-bottom:9px}
+.qb-ai{background:rgba(78,203,141,.11);color:var(--success);border:1px solid rgba(78,203,141,.28)}
+.qb-basic{background:rgba(201,168,76,.09);color:var(--gold2);border:1px solid rgba(201,168,76,.26)}
+
+/* API KEY */
+.apikey-box{background:linear-gradient(135deg,rgba(201,168,76,.07),rgba(201,168,76,.03));border:1.5px solid rgba(201,168,76,.28);border-radius:13px;padding:14px 16px;margin-bottom:13px}
+.apikey-box-title{font-size:.84rem;font-weight:800;color:var(--gold2);margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.apikey-box-sub{font-size:.71rem;color:var(--muted);margin-bottom:9px;line-height:1.5}
+.apikey-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.apikey-input{flex:1;min-width:160px;background:var(--navy);color:var(--text);border:1px solid rgba(201,168,76,.32);border-radius:8px;padding:7px 11px;font-size:.8rem;font-family:monospace;outline:none;transition:border .2s}
+.apikey-input:focus{border-color:var(--gold2)}
+.provider-tabs{display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap}
+.provider-tab{background:var(--navy3);border:1.5px solid transparent;color:var(--muted);border-radius:7px;padding:5px 11px;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s}
+.provider-tab:hover{border-color:var(--gold);color:var(--gold2)}
+.provider-tab.active{background:rgba(201,168,76,.13);border-color:var(--gold2);color:var(--gold2)}
+.provider-link{font-size:.68rem;color:var(--gold);text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-top:4px}
+.provider-link:hover{text-decoration:underline}
+
+/* SPINNER */
+.spin{width:18px;height:18px;border-radius:50%;display:inline-block;border:2.5px solid rgba(201,168,76,.2);border-top-color:var(--gold2);animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.sep{height:1px;background:rgba(201,168,76,.11);margin:12px 0}
+.info-box{margin-top:11px;padding:9px 13px;background:rgba(201,168,76,.05);border-radius:9px;border:1px solid rgba(201,168,76,.12)}
+.info-title{font-size:.73rem;color:var(--gold2);font-weight:700;margin-bottom:3px}
+.info-body{font-size:.71rem;color:var(--muted);line-height:1.6}
+.toast{position:fixed;bottom:20px;left:20px;z-index:9999;background:var(--navy2);border:1px solid rgba(201,168,76,.28);color:var(--text);padding:9px 15px;border-radius:9px;font-size:.81rem;box-shadow:var(--sh);transform:translateY(80px);opacity:0;transition:all .3s;max-width:290px;direction:rtl}
+.toast.show{transform:translateY(0);opacity:1}
+footer{text-align:center;padding:14px;color:var(--muted);font-size:.71rem;position:relative;z-index:10;border-top:1px solid rgba(201,168,76,.07)}
+footer span{color:var(--gold)}
+@media(max-width:500px){
+  header h1{font-size:1.55rem}.card{padding:14px}.player-ctrl{gap:6px}
+  .pdf-iframe-wrap{min-height:340px}.pdf-iframe-wrap iframe{min-height:320px}
+  .apikey-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">🎙️</div>
+    <h1>VoiceHub</h1>
+  </div>
+  <p class="sub-ar">مركزك الذكي للقراءة الصوتية والترجمة والتلخيص</p>
+  <p class="sub-en">AI Arabic Reader · Translation · Smart Summarization</p>
+  <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+    <span class="chip chip-green"><span class="dot dot-g"></span>Microsoft Neural TTS</span>
+    <span class="chip chip-gold"><span class="dot dot-o"></span>بدون إنترنت للـ PDF</span>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <button class="tab-btn active" onclick="switchTab('pdf',this)"><span class="tnum">١</span>📄 قارئ PDF</button>
+  <button class="tab-btn" onclick="switchTab('translate',this)"><span class="tnum">٢</span>🌐 الترجمة</button>
+  <button class="tab-btn" onclick="switchTab('brief',this)"><span class="tnum">٣</span>📝 الملخص</button>
+</div>
+
+<div class="panel-container">
+
+<!-- ══════════ TAB 1: PDF READER ══════════ -->
+<div id="panel-pdf" class="panel active">
+<div class="card">
+  <div class="card-title">📄 قارئ PDF مع القراءة الصوتية بصوت Microsoft Neural</div>
+  <div class="card-sub">يستخدم أصوات Microsoft Neural عالية الجودة — عربي واضح وسليم بدون تقطيع</div>
+
+  <div class="drop-zone" id="pdf-drop">
+    <input type="file" id="pdf-file" accept=".pdf" onchange="handlePDFUpload(this)"/>
+    <div class="drop-icon">📂</div>
+    <p><strong>اضغط لرفع ملف PDF</strong> أو اسحبه هنا</p>
+    <p style="margin-top:3px;font-size:.72rem">Click to upload · Arabic & English PDFs supported</p>
+  </div>
+
+  <div class="pdf-layout" id="pdf-layout" style="display:none">
+
+    <!-- LEFT: Native iframe viewer -->
+    <div class="pdf-iframe-wrap">
+      <div class="pdf-iframe-bar">
+        <span>🔍 قارئ PDF المدمج</span>
+        <span id="pdf-fname" style="color:var(--muted);font-size:.66rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px"></span>
+      </div>
+      <iframe id="pdf-iframe" title="PDF Viewer" allowfullscreen></iframe>
+    </div>
+
+    <!-- RIGHT: voice + player + text -->
+    <div class="pdf-right">
+
+      <!-- ARABIC VOICE SELECTOR -->
+      <div class="voice-panel">
+        <div class="vp-title">🎙️ الصوت العربي <span id="pdf-vc-count" class="badge bg-gold" style="margin-right:auto"></span>
+          <span id="pdf-eng-badge" class="eng-badge eb-ms">Microsoft Neural</span>
+        </div>
+        <div class="voice-grid" id="pdf-vgrid"></div>
+        <div class="ctrl-row" style="margin-top:10px">
+          <div class="ctrl-group">
+            <label>⚡ السرعة</label>
+            <input type="range" id="pdf-rate" min="-50" max="50" step="5" value="-10" style="width:115px"
+              oninput="document.getElementById('pdf-rate-v').textContent=(this.value>0?'+':'')+this.value+'%'"/>
+            <span id="pdf-rate-v" style="font-size:.69rem;color:var(--gold3);margin-top:1px">-10%</span>
+          </div>
+          <div class="ctrl-group">
+            <label>🎵 النبرة</label>
+            <input type="range" id="pdf-pitch" min="-10" max="10" step="1" value="0" style="width:115px"
+              oninput="document.getElementById('pdf-pitch-v').textContent=(this.value>0?'+':'')+this.value+'Hz'"/>
+            <span id="pdf-pitch-v" style="font-size:.69rem;color:var(--gold3);margin-top:1px">+0Hz</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIO PLAYER -->
+      <div class="player-box">
+        <div class="player-head">
+          🎵 مشغّل الصوت
+          <span class="pg-chip" id="pg-chip">صفحة ١/١</span>
+          <span id="pdf-total-lbl" style="color:var(--muted);font-size:.66rem;margin-right:auto"></span>
+        </div>
+        <!-- progress bar — controls segment position -->
+        <div class="prog-wrap" id="prog-wrap" onclick="seekPage(event,this)">
+          <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+        </div>
+        <div class="prog-times">
+          <span id="t-cur">0:00</span>
+          <span id="t-tot">0:00</span>
+        </div>
+        <!-- controls -->
+        <div class="player-ctrl">
+          <button class="pc" onclick="goPage(-1)" title="صفحة سابقة">⏮</button>
+          <button class="pc" id="pc-rew" onclick="seekBack()" title="رجوع" disabled>⏪</button>
+          <button class="pc pp" id="pc-play" onclick="togglePlay()" disabled>▶</button>
+          <button class="pc" id="pc-fwd" onclick="seekFwd()" title="تقديم" disabled>⏩</button>
+          <button class="pc" onclick="goPage(1)" title="صفحة تالية">⏭</button>
+          <button class="pc" onclick="stopAll()" title="إيقاف كامل">⏹</button>
+        </div>
+        <!-- volume -->
+        <div class="vol-row">
+          <span class="vol-ic" id="vol-ic" onclick="toggleMute()">🔊</span>
+          <input type="range" id="vol-sl" min="0" max="1" step="0.05" value="1" style="width:95px" oninput="setVol(this.value)"/>
+          <span id="vol-v" style="font-size:.69rem;color:var(--gold3);min-width:30px">100%</span>
+        </div>
+        <div class="player-stat" id="player-stat">ارفع ملف PDF للبدء</div>
+        <div class="seg-status" id="seg-status"></div>
+      </div>
+
+      <!-- Offline toggle button — shown after PDF loads -->
+      <div id="offline-toggle-wrap" style="display:none;margin-top:2px">
+        <button class="btn btn-out" id="offline-toggle-btn" onclick="toggleOfflinePanel()"
+          style="width:100%;justify-content:center;padding:8px 16px;font-size:.8rem">
+          ⬇️ تحميل أوفلاين
+        </button>
+      </div>
+
+      <!-- LIVE TEXT -->
+      <div class="text-card" id="text-card" style="display:none">
+        <div class="text-head">
+          <span>📖 النص</span>
+          <span id="text-pg-lbl" style="color:var(--muted);font-weight:400;font-size:.66rem"></span>
+        </div>
+        <div class="text-body" id="text-body" dir="auto"></div>
+      </div>
+
+      <!-- ══ OFFLINE DOWNLOAD PANEL ══ -->
+      <div class="offline-panel" id="offline-panel" style="display:none">
+        <div class="offline-title">⬇️ تحميل للاستماع أوفلاين</div>
+        <div class="offline-sub">حوّل صفحات الكتاب لملفات MP3 واستمع بدون إنترنت في أي وقت</div>
+
+        <!-- Download all button -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+          <button class="dl-btn dl-all" id="dl-all-btn" onclick="downloadAll()">
+            ⬇️ تحميل الكتاب كاملاً
+          </button>
+          <button class="dl-btn dl-all btn-out" style="background:transparent;border:1.5px solid var(--gold);color:var(--gold2);box-shadow:none" onclick="downloadPage(pdfCurPage-1)">
+            📄 تحميل الصفحة الحالية
+          </button>
+          <span id="dl-all-status" style="font-size:.71rem;color:var(--muted)"></span>
+        </div>
+
+        <!-- Per-page download list -->
+        <div class="dl-grid" id="dl-grid"></div>
+
+        <!-- Overall download progress -->
+        <div class="dl-progress" id="dl-all-progress">
+          <div class="dl-progress-fill" id="dl-all-fill"></div>
+        </div>
+
+        <div class="offline-info">
+          💡 الملفات تُحفظ على جهازك — افتحها بأي مشغّل صوت (VLC، الهاتف، Windows Media Player...)<br>
+          الصفحة الواحدة قد تكون عدة ملفات MP3 إذا كانت طويلة.
+        </div>
+      </div>
+
+      <!-- ══ OFFLINE PLAYER ══ -->
+      <div class="offline-player-box" id="offline-player-box" style="display:none">
+        <div class="offline-player-title">🎧 تشغيل ملف MP3 أوفلاين</div>
+        <p style="font-size:.72rem;color:var(--muted);margin-bottom:8px">ارفع ملف MP3 محمّل مسبقاً للاستماع بدون إنترنت</p>
+        <div class="drop-zone" id="mp3-drop" style="padding:16px">
+          <input type="file" id="mp3-file" accept=".mp3,audio/*" onchange="loadOfflineMP3(this)"/>
+          <div style="font-size:1.8rem;margin-bottom:5px">🎵</div>
+          <p><strong>ارفع ملف MP3</strong> للتشغيل أوفلاين</p>
+        </div>
+        <audio id="offline-audio" controls style="display:none"></audio>
+        <div id="offline-audio-name" style="font-size:.72rem;color:var(--gold3);margin-top:5px;text-align:center"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ TAB 2: TRANSLATOR ══════════ -->
+<div id="panel-translate" class="panel">
+<div class="card">
+  <div class="card-title">🌐 مترجم النصوص والملفات</div>
+  <div class="card-sub">ترجمة حتى ١٠ ميجابايت — أكثر من ١٢ لغة</div>
+  <div class="drop-zone" id="trans-drop">
+    <input type="file" id="trans-file" accept=".txt,.pdf" onchange="handleTransFile(this)"/>
+    <div class="drop-icon">📎</div>
+    <p><strong>ارفع ملف</strong> (TXT / PDF — حتى ١٠ ميجا) <span style="color:var(--gold)">أو اكتب أدناه</span></p>
+    <p id="trans-file-info" style="margin-top:3px;font-size:.71rem;color:var(--gold3)"></p>
+  </div>
+  <div class="sep"></div>
+  <div class="ctrl-row" style="align-items:flex-end">
+    <div class="ctrl-group">
+      <label>لغة المصدر</label>
+      <select id="trans-src">
+        <option value="auto">🔍 اكتشاف تلقائي</option>
+        <option value="en">English</option><option value="ar">عربي</option>
+        <option value="fr">Français</option><option value="de">Deutsch</option>
+        <option value="es">Español</option><option value="it">Italiano</option>
+        <option value="zh">中文</option><option value="ja">日本語</option>
+        <option value="ru">Русский</option><option value="tr">Türkçe</option>
+        <option value="pt">Português</option><option value="ko">한국어</option>
+      </select>
+    </div>
+    <div style="font-size:1.3rem;color:var(--gold);padding-bottom:3px">⇄</div>
+    <div class="ctrl-group">
+      <label>لغة الترجمة</label>
+      <select id="trans-tgt">
+        <option value="ar">عربي</option><option value="en">English</option>
+        <option value="fr">Français</option><option value="de">Deutsch</option>
+        <option value="es">Español</option><option value="it">Italiano</option>
+        <option value="zh">中文</option><option value="ja">日本語</option>
+        <option value="ru">Русский</option><option value="tr">Türkçe</option>
+        <option value="pt">Português</option><option value="ko">한국어</option>
+      </select>
+    </div>
+  </div>
+  <div class="trans-grid">
+    <div class="tbox">
+      <div class="tbox-lbl">📝 النص الأصلي</div>
+      <textarea id="trans-in" class="tarea" placeholder="الصق أو اكتب النص هنا..." oninput="transCount()"></textarea>
+      <div style="font-size:.7rem;color:var(--muted);text-align:left;direction:ltr"><span id="t-chars">0</span> حرف | <span id="t-words">0</span> كلمة</div>
+    </div>
+    <div class="tbox">
+      <div class="tbox-lbl">🌍 الترجمة</div>
+      <textarea id="trans-out" class="tarea" placeholder="ستظهر الترجمة هنا..." readonly dir="auto"></textarea>
+      <div style="font-size:.7rem;color:var(--muted);text-align:left;direction:ltr" id="t-out-c">0 حرف</div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="doTranslate()" id="trans-btn">🌐 ترجمة</button>
+    <button class="btn btn-out" onclick="speakTrans()">🔊 اقرأ</button>
+    <button class="btn btn-out" onclick="stopTrans()">⏹ إيقاف</button>
+    <button class="btn btn-out" onclick="copyTrans()">📋 نسخ</button>
+    <button class="btn btn-out" onclick="clearTrans()">🗑 مسح</button>
+    <span id="trans-status"></span>
+  </div>
+  <div class="voice-panel" style="margin-top:12px">
+    <div class="vp-title">🔊 صوت الترجمة</div>
+    <div class="voice-grid" id="trans-vgrid"></div>
+    <div class="ctrl-row" style="margin-top:9px">
+      <div class="ctrl-group">
+        <label>⚡ السرعة</label>
+        <input type="range" id="trans-rate" min="-50" max="50" step="5" value="-10" style="width:115px"
+          oninput="document.getElementById('trans-rate-v').textContent=(this.value>0?'+':'')+this.value+'%'"/>
+        <span id="trans-rate-v" style="font-size:.69rem;color:var(--gold3)">-10%</span>
+      </div>
+    </div>
+  </div>
+  <div class="info-box">
+    <div class="info-title">ℹ️ ملاحظة</div>
+    <div class="info-body">الترجمة عبر MyMemory API. القراءة الصوتية عبر FreeTTS (Microsoft Neural voices — تحتاج إنترنت).</div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ TAB 3: BRIEF ══════════ -->
+<div id="panel-brief" class="panel">
+<div class="card">
+  <div class="card-title">📝 الملخص بالعربية المصرية</div>
+  <div class="card-sub">تلخيص بالذكاء الاصطناعي بالعربي المصري — يُقرأ بصوت Microsoft Neural العربي</div>
+  <div class="apikey-box">
+    <div class="apikey-box-title">🤖 مفتاح الذكاء الاصطناعي</div>
+    <div class="apikey-box-sub">Groq مجاني — تلخيص دقيق باللهجة المصرية بدون أخطاء إملائية</div>
+    <div class="provider-tabs">
+      <button class="provider-tab active" onclick="selProv('groq',this)">⚡ Groq (مُوصى به)</button>
+      <button class="provider-tab" onclick="selProv('openrouter',this)">🔀 OpenRouter</button>
+    </div>
+    <div class="apikey-row">
+      <input type="password" class="apikey-input" id="brief-key" placeholder="gsk_xxxxxxxxxxxxxxxx"/>
+      <button class="btn btn-out" style="padding:6px 12px;font-size:.74rem" onclick="toggleKey()">👁</button>
+      <button class="btn" style="padding:6px 12px;font-size:.74rem" onclick="saveKey()">💾 حفظ</button>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:5px">
+      <a href="https://console.groq.com/keys" target="_blank" class="provider-link">🔑 Groq مجاناً ←</a>
+      <a href="https://openrouter.ai/keys" target="_blank" class="provider-link">🔑 OpenRouter ←</a>
+    </div>
+    <div id="key-status" style="margin-top:5px;font-size:.7rem;color:var(--muted)"></div>
+  </div>
+  <div class="drop-zone" id="brief-drop">
+    <input type="file" id="brief-file" accept=".txt,.pdf" onchange="handleBriefFile(this)"/>
+    <div class="drop-icon">📖</div>
+    <p><strong>ارفع PDF أو TXT</strong></p>
+    <p id="brief-file-info" style="margin-top:3px;font-size:.71rem;color:var(--gold3)"></p>
+  </div>
+  <div class="sep"></div>
+  <div class="tbox" style="margin-bottom:9px">
+    <div class="tbox-lbl">📄 أو الصق النص هنا</div>
+    <textarea id="brief-in" style="min-height:110px" placeholder="الصق نصك هنا..."></textarea>
+    <div style="font-size:.68rem;color:var(--muted);text-align:left;direction:ltr" id="brief-cc">0 chars</div>
+  </div>
+  <div class="ctrl-row" style="margin-bottom:4px;align-items:flex-end">
+    <div class="ctrl-group">
+      <label>📏 طول الملخص</label>
+      <select id="brief-len">
+        <option value="short">قصير (٣-٤)</option>
+        <option value="medium" selected>متوسط (٥-٧)</option>
+        <option value="long">مفصّل (٨-١٠)</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <label>🎭 الأسلوب</label>
+      <select id="brief-style">
+        <option value="egyptian" selected>🇪🇬 مصري عامي</option>
+        <option value="formal">📚 فصيح</option>
+        <option value="simple">🗣️ مبسّط</option>
+      </select>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="genBrief()" id="brief-btn">✨ اعمل الملخص</button>
+    <button class="btn btn-out" onclick="speakBrief()" id="brief-speak" disabled>🔊 اقرأ</button>
+    <button class="btn btn-out" onclick="stopBriefAudio()">⏹ إيقاف</button>
+    <button class="btn btn-out" onclick="copyBrief()">📋 نسخ</button>
+    <button class="btn btn-out" onclick="clearBrief()">🗑 مسح</button>
+    <span id="brief-status"></span>
+  </div>
+  <div class="voice-panel" style="margin-top:11px">
+    <div class="vp-title">🎙️ صوت الملخص <span id="brief-vc-count" class="badge bg-gold" style="margin-right:auto"></span></div>
+    <div class="voice-grid" id="brief-vgrid"></div>
+    <div class="ctrl-row" style="margin-top:8px">
+      <div class="ctrl-group">
+        <label>⚡ السرعة</label>
+        <input type="range" id="brief-rate" min="-50" max="50" step="5" value="-15" style="width:115px"
+          oninput="document.getElementById('brief-rate-v').textContent=(this.value>0?'+':'')+this.value+'%'"/>
+        <span id="brief-rate-v" style="font-size:.69rem;color:var(--gold3)">-15%</span>
+      </div>
+    </div>
+  </div>
+  <div id="brief-qi" style="margin-top:10px;display:none"></div>
+  <div class="brief-out empty" id="brief-out" dir="rtl"></div>
+  <div class="info-box" style="margin-top:10px">
+    <div class="info-title">💡 كيف يشتغل</div>
+    <div class="info-body">
+      <strong style="color:var(--gold2)">بدون مفتاح:</strong> تلخيص أساسي.<br>
+      <strong style="color:var(--success)">بمفتاح Groq (مجاني):</strong> Llama 3.3-70B — ملخص بالمصري العامي 🇪🇬<br>
+      القراءة الصوتية عبر <strong style="color:var(--gold2)">Microsoft Neural TTS</strong> — جودة احترافية عالية.
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- /panel-container -->
+<div class="toast" id="toast"></div>
+<footer><span>VoiceHub</span> — Microsoft Neural TTS · Browser PDF Viewer · AI Summarization</footer>
+
+<!-- PDF.js for text extraction ONLY -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   ARABIC MICROSOFT NEURAL VOICES via FreeTTS.org
+   Free · No API key · No signup
+   Docs: https://freetts.org/developers
+═══════════════════════════════════════════ */
+const FREETTS = 'https://freetts.org/api';
+
+// All Arabic Neural voices from Microsoft (via FreeTTS)
+const AR_VOICES = [
+  {id:'ar-EG-SalmaNeural',    flag:'🇪🇬', name:'Salma (مصري)',      lang:'ar-EG', q:'q-best'},
+  {id:'ar-EG-ShakirNeural',   flag:'🇪🇬', name:'Shakir (مصري)',     lang:'ar-EG', q:'q-best'},
+  {id:'ar-SA-ZariyahNeural',  flag:'🇸🇦', name:'Zariyah (سعودي)',   lang:'ar-SA', q:'q-best'},
+  {id:'ar-SA-HamedNeural',    flag:'🇸🇦', name:'Hamed (سعودي)',     lang:'ar-SA', q:'q-best'},
+  {id:'ar-AE-FatimaNeural',   flag:'🇦🇪', name:'Fatima (إماراتي)',  lang:'ar-AE', q:'q-good'},
+  {id:'ar-AE-HamdanNeural',   flag:'🇦🇪', name:'Hamdan (إماراتي)', lang:'ar-AE', q:'q-good'},
+  {id:'ar-KW-FahedNeural',    flag:'🇰🇼', name:'Fahed (كويتي)',     lang:'ar-KW', q:'q-good'},
+  {id:'ar-KW-NouraNeural',    flag:'🇰🇼', name:'Noura (كويتية)',    lang:'ar-KW', q:'q-good'},
+  {id:'ar-QA-AmalNeural',     flag:'🇶🇦', name:'Amal (قطري)',       lang:'ar-QA', q:'q-good'},
+  {id:'ar-QA-MoazNeural',     flag:'🇶🇦', name:'Moaz (قطري)',       lang:'ar-QA', q:'q-good'},
+  {id:'ar-IQ-BasselNeural',   flag:'🇮🇶', name:'Bassel (عراقي)',    lang:'ar-IQ', q:'q-good'},
+  {id:'ar-IQ-RanaNeural',     flag:'🇮🇶', name:'Rana (عراقية)',     lang:'ar-IQ', q:'q-good'},
+  {id:'ar-JO-SanaNeural',     flag:'🇯🇴', name:'Sana (أردني)',      lang:'ar-JO', q:'q-good'},
+  {id:'ar-LB-LaylaNeural',    flag:'🇱🇧', name:'Layla (لبناني)',    lang:'ar-LB', q:'q-good'},
+  {id:'ar-MA-JamalNeural',    flag:'🇲🇦', name:'Jamal (مغربي)',     lang:'ar-MA', q:'q-good'},
+  {id:'ar-DZ-AminaNeural',    flag:'🇩🇿', name:'Amina (جزائري)',    lang:'ar-DZ', q:'q-good'},
+];
+
+const TRANS_VOICES = [
+  ...AR_VOICES.slice(0,4),
+  {id:'en-US-JennyNeural',   flag:'🇺🇸', name:'Jenny (English US)', lang:'en-US', q:'q-best'},
+  {id:'en-GB-SoniaNeural',   flag:'🇬🇧', name:'Sonia (English UK)', lang:'en-GB', q:'q-best'},
+  {id:'fr-FR-DeniseNeural',  flag:'🇫🇷', name:'Denise (French)',    lang:'fr-FR', q:'q-good'},
+  {id:'de-DE-KatjaNeural',   flag:'🇩🇪', name:'Katja (German)',     lang:'de-DE', q:'q-good'},
+  {id:'es-ES-ElviraNeural',  flag:'🇪🇸', name:'Elvira (Spanish)',   lang:'es-ES', q:'q-good'},
+];
+
+let selVoice = { pdf: AR_VOICES[0], trans: AR_VOICES[0], brief: AR_VOICES[0] };
+
+/* ═══════════════════════════════════════════
+   FreeTTS API — generate MP3 + SRT
+   Returns: { audioUrl, srt }
+   text limit per request: 1000 chars (free tier)
+═══════════════════════════════════════════ */
+async function freeTTS(text, voiceId, rate='-10%', pitch='+0Hz'){
+  text = text.trim().slice(0, 950); // stay under 1000 char limit
+  const res = await fetch(`${FREETTS}/tts`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ text, voice: voiceId, rate, pitch })
+  });
+  if(!res.ok) throw new Error('FreeTTS error ' + res.status);
+  const { file_id } = await res.json();
+  // Get SRT for word timing (optional, use if available)
+  let srt = null;
+  try {
+    const sr = await fetch(`${FREETTS}/srt/${file_id}`);
+    if(sr.ok) srt = await sr.text();
+  } catch {}
+  return { audioUrl: `${FREETTS}/audio/${file_id}`, srt, file_id };
+}
+
+// Parse SRT → [{start_ms, end_ms, word}]
+function parseSRT(srt){
+  if(!srt) return [];
+  const blocks = srt.trim().split(/\n\n+/);
+  return blocks.map(b=>{
+    const lines = b.trim().split('\n');
+    if(lines.length < 3) return null;
+    const times = lines[1].match(/(\d+):(\d+):(\d+),(\d+)\s*-->\s*(\d+):(\d+):(\d+),(\d+)/);
+    if(!times) return null;
+    const toMs = (h,m,s,ms) => (+h*3600000)+(+m*60000)+(+s*1000)+(+ms);
+    return {
+      start: toMs(times[1],times[2],times[3],times[4]),
+      end:   toMs(times[5],times[6],times[7],times[8]),
+      word:  lines.slice(2).join(' ').trim()
+    };
+  }).filter(Boolean);
+}
+
+/* ═══════════════════════════════════════════
+   GLOBALS
+═══════════════════════════════════════════ */
+if(typeof pdfjsLib !== 'undefined')
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let pdfPages = [];       // cleaned text per page
+let pdfCurPage = 1;      // 1-based, shown in UI
+let pdfReadIdx = 0;      // 0-based, which page is queued to play
+let pdfTotal   = 0;
+let pdfBlobUrl = null;
+
+// Audio engine
+let audioEl = null;      // current HTMLAudioElement
+let audioSegments = [];  // [{audioUrl, srt, text}] for current page
+let segIdx = 0;
+let isPlaying = false;
+let isPaused  = false;
+let volLevel  = 1;
+let isMuted   = false;
+
+// Word highlight
+let wordSpans = [];
+let srtData   = [];
+let srtTimer  = null;
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+function showToast(msg,dur=3000){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),dur);
+}
+function fmtTime(s){
+  s=Math.max(0,Math.floor(s));
+  return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+}
+function escH(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function isRTL(t){
+  return ((t.match(/[\u0600-\u06FF]/g)||[]).length) > t.length*0.12;
+}
+function switchTab(tab,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  $('panel-'+tab).classList.add('active'); btn.classList.add('active');
+}
+function setupDrop(id,cb){
+  const el=$(id); if(!el) return;
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('dragover')});
+  el.addEventListener('dragleave',()=>el.classList.remove('dragover'));
+  el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dragover');
+    const f=e.dataTransfer.files[0]; if(f) cb(f);});
+}
+
+/* ═══════════════════════════════════════════
+   VOICE GRID BUILDER
+═══════════════════════════════════════════ */
+function buildVoiceGrid(gridId, voices, key, countId){
+  const grid=$(gridId); if(!grid) return;
+  grid.innerHTML='';
+  if(countId) $(countId).textContent = voices.length+' صوت';
+  voices.forEach((v,i)=>{
+    const c=document.createElement('div');
+    c.className='vc'+(i===0?' sel':'');
+    c.innerHTML=`<span class="vc-flag">${v.flag}</span>
+      <div><div class="vc-name">${v.name}</div>
+      <div class="vc-lang">${v.id}</div>
+      <span class="vc-q ${v.q}">${v.q==='q-best'?'الأفضل':'جيد'}</span></div>`;
+    c.onclick=()=>{
+      grid.querySelectorAll('.vc').forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel'); selVoice[key]=v;
+    };
+    grid.appendChild(c);
+  });
+  selVoice[key]=voices[0];
+}
+buildVoiceGrid('pdf-vgrid',   AR_VOICES,    'pdf',   'pdf-vc-count');
+buildVoiceGrid('trans-vgrid', TRANS_VOICES, 'trans', null);
+buildVoiceGrid('brief-vgrid', AR_VOICES,    'brief', 'brief-vc-count');
+
+/* ═══════════════════════════════════════════
+   PDF TEXT EXTRACTION — Arabic-aware
+   Uses PDF.js with cMaps for proper Arabic Unicode
+═══════════════════════════════════════════ */
+function extractPageText(items){
+  if(!items||!items.length) return '';
+
+  // Collect tokens with position info
+  const tokens=[];
+  items.forEach(item=>{
+    const s=(item.str||'').replace(/\u200B|\uFEFF/g,'').trim();
+    if(!s) return;
+    const h=Math.abs(item.height)||12;
+    tokens.push({x:item.transform[4], y:item.transform[5], w:Math.abs(item.width)||0, h, str:s});
+  });
+  if(!tokens.length) return '';
+
+  // Sort all tokens top→bottom first
+  tokens.sort((a,b)=>b.y-a.y||a.x-b.x);
+
+  // Group into lines (tokens with similar Y)
+  const lines=[]; let cur=[tokens[0]];
+  for(let i=1;i<tokens.length;i++){
+    if(Math.abs(tokens[i].y - cur[0].y) <= cur[0].h*0.55) cur.push(tokens[i]);
+    else { lines.push(cur); cur=[tokens[i]]; }
+  }
+  lines.push(cur);
+
+  // Build each line
+  const result = lines.map(line=>{
+    const sample=line.map(t=>t.str).join('');
+    const rtl=isRTL(sample);
+
+    // Sort within line
+    if(rtl) line.sort((a,b)=>b.x-a.x);
+    else     line.sort((a,b)=>a.x-b.x);
+
+    // Average char width for gap detection
+    const avgCW = line.reduce((s,t)=>s+(t.w/(t.str.length||1)),0)/line.length || 6;
+    const gap   = Math.max(avgCW*0.7, 2.5);
+
+    // Merge adjacent chars into words
+    const words=[]; let word=line[0].str;
+    for(let i=1;i<line.length;i++){
+      const prev=line[i-1], curr=line[i];
+      const d = rtl ? (prev.x-(curr.x+curr.w)) : (curr.x-(prev.x+prev.w));
+      if(d>gap){ words.push(word); word=curr.str; }
+      else { word = rtl ? curr.str+word : word+curr.str; }
+    }
+    words.push(word);
+    if(rtl) words.reverse();
+    return words.filter(Boolean).join(' ');
+  });
+
+  return result.filter(l=>l.trim()).join('\n')
+    .replace(/[ \t]{2,}/g,' ').replace(/\n{3,}/g,'\n\n')
+    .replace(/ﻻ/g,'لا').replace(/ﻼ/g,'لا').replace(/ﷲ/g,'الله')
+    .trim();
+}
+
+/* ═══════════════════════════════════════════
+   OFFLINE DOWNLOAD ENGINE
+   Strategy:
+   1. downloadPage(idx)   → fetches segments → merges → downloads .mp3
+   2. downloadAll()       → loops all pages sequentially
+   3. loadOfflineMP3()    → plays a local MP3 file with <audio>
+   Uses: Web Audio API (AudioContext) to merge MP3 blobs into one file
+═══════════════════════════════════════════ */
+
+// Build the per-page download list UI (called after PDF loads)
+function buildDLGrid(){
+  const grid=$('dl-grid');
+  grid.innerHTML='';
+  pdfPages.forEach((txt,i)=>{
+    if(!txt.trim()) return;
+    const row=document.createElement('div');
+    row.className='dl-row';
+    row.id=`dl-row-${i}`;
+    const chars=txt.length;
+    row.innerHTML=`
+      <div class="dl-row-info">
+        <div class="dl-pg-name">📄 صفحة ${i+1}</div>
+        <div class="dl-pg-chars">${chars.toLocaleString()} حرف</div>
+        <div class="dl-progress" id="dl-prog-${i}"><div class="dl-progress-fill" id="dl-fill-${i}"></div></div>
+      </div>
+      <button class="dl-btn" id="dl-btn-${i}" onclick="downloadPage(${i})">⬇️ تحميل</button>
+      <a id="dl-link-${i}" style="display:none"></a>`;
+    grid.appendChild(row);
+  });
+}
+
+// Download a single page as MP3
+async function downloadPage(pageIdx){
+  const txt=pdfPages[pageIdx];
+  if(!txt||!txt.trim()){ showToast('⚠️ الصفحة فارغة'); return; }
+
+  const btn=$(`dl-btn-${pageIdx}`);
+  const prog=$(`dl-prog-${pageIdx}`);
+  const fill=$(`dl-fill-${pageIdx}`);
+  if(btn) btn.disabled=true;
+  if(prog){ prog.classList.add('show'); fill.style.width='0%'; }
+
+  const voice=selVoice.pdf.id;
+  const rate=getRateStr();
+  const pitch=getPitchStr();
+  const chunks=splitTextChunks(txt);
+  const blobs=[];
+
+  try{
+    for(let ci=0;ci<chunks.length;ci++){
+      if(prog) fill.style.width=Math.round((ci/chunks.length)*80)+'%';
+      const {audioUrl}=await freeTTS(chunks[ci], voice, rate, pitch);
+      // Fetch the actual audio blob
+      const r=await fetch(audioUrl);
+      if(!r.ok) throw new Error('فشل تحميل جزء '+(ci+1));
+      blobs.push(await r.blob());
+    }
+
+    // Merge all blobs into one MP3 file
+    if(prog) fill.style.width='90%';
+    const merged=await mergeMP3Blobs(blobs);
+    const url=URL.createObjectURL(merged);
+
+    // Trigger download
+    const pdfName=(pdfFileName||'كتاب').replace(/\.pdf$/i,'').slice(0,30);
+    const fname=`${pdfName}_صفحة${pageIdx+1}.mp3`;
+    triggerDownload(url, fname);
+
+    if(prog) fill.style.width='100%';
+    if(btn){ btn.disabled=false; btn.textContent='✅ تم التحميل'; btn.style.background='rgba(78,203,141,.8)'; }
+    showToast(`✅ تم تحميل صفحة ${pageIdx+1}`);
+
+    // Cleanup URL after 60s
+    setTimeout(()=>URL.revokeObjectURL(url), 60000);
+
+  }catch(e){
+    if(btn){ btn.disabled=false; btn.textContent='⚠️ إعادة المحاولة'; }
+    if(prog) prog.classList.remove('show');
+    showToast('⚠️ خطأ: '+e.message, 4000);
+    console.error(e);
+  }
+}
+
+// Download ALL pages — sequential to respect rate limits
+async function downloadAll(){
+  const btn=$('dl-all-btn');
+  const status=$('dl-all-status');
+  const progWrap=$('dl-all-progress');
+  const fill=$('dl-all-fill');
+
+  btn.disabled=true;
+  progWrap.classList.add('show');
+
+  const validPages=pdfPages.map((t,i)=>({t,i})).filter(x=>x.t.trim());
+  let done=0;
+
+  for(const {t,i} of validPages){
+    status.textContent=`⏳ صفحة ${i+1} من ${pdfTotal}...`;
+    fill.style.width=Math.round((done/validPages.length)*100)+'%';
+    try{
+      await downloadPage(i);
+      await sleep(2500); // Respect FreeTTS 20 req/min rate limit
+    }catch(e){
+      showToast(`⚠️ تخطي صفحة ${i+1}: ${e.message}`, 3000);
+    }
+    done++;
+  }
+
+  fill.style.width='100%';
+  status.textContent=`✅ تم تحميل ${done} صفحة`;
+  btn.disabled=false;
+  showToast('🎉 تم تحميل الكتاب بالكامل!', 4000);
+}
+
+// Merge multiple MP3 Blob objects into one Blob
+// Simple concatenation — works for MP3 (CBR streams can be concatenated)
+async function mergeMP3Blobs(blobs){
+  if(blobs.length===1) return blobs[0];
+  const arrays=await Promise.all(blobs.map(b=>b.arrayBuffer()));
+  const total=arrays.reduce((s,a)=>s+a.byteLength,0);
+  const merged=new Uint8Array(total);
+  let off=0;
+  for(const arr of arrays){ merged.set(new Uint8Array(arr),off); off+=arr.byteLength; }
+  return new Blob([merged],{type:'audio/mpeg'});
+}
+
+function triggerDownload(url, filename){
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// Offline MP3 player — load a previously downloaded file
+function loadOfflineMP3(inp){
+  const file=inp.files[0]; if(!file) return;
+  const url=URL.createObjectURL(file);
+  const audio=$('offline-audio');
+  audio.src=url; audio.style.display='block'; audio.load();
+  $('offline-audio-name').textContent='🎵 '+file.name;
+  showToast('🎧 ملف MP3 جاهز للتشغيل');
+}
+
+// Show/hide offline panel toggle
+let offlinePanelOpen=false;
+function toggleOfflinePanel(){
+  offlinePanelOpen=!offlinePanelOpen;
+  $('offline-panel').style.display=offlinePanelOpen?'block':'none';
+  $('offline-player-box').style.display=offlinePanelOpen?'block':'none';
+  $('offline-toggle-btn').textContent=offlinePanelOpen?'▲ إخفاء أوفلاين':'⬇️ تحميل أوفلاين';
+}
+
+/* ═══════════════════════════════════════════
+   PDF UPLOAD & PROCESS
+═══════════════════════════════════════════ */
+let pdfFileName='';
+setupDrop('pdf-drop',f=>{ if(f.type==='application/pdf') loadPDF(f); else showToast('⚠️ يرجى رفع ملف PDF'); });
+function handlePDFUpload(inp){ if(inp.files[0]) loadPDF(inp.files[0]); }
+
+async function loadPDF(file){
+  showToast('⏳ جاري تحميل الملف...');
+  stopAll();
+  pdfPages=[];
+
+  // 1. Show in native iframe
+  if(pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+  pdfBlobUrl=URL.createObjectURL(file);
+  pdfFileName=file.name;
+  $('pdf-iframe').src=pdfBlobUrl+'#toolbar=1&navpanes=1&view=FitH';
+  $('pdf-fname').textContent=file.name;
+
+  // 2. Extract text via PDF.js with Arabic support
+  try{
+    const ab=await file.arrayBuffer();
+    const doc=await pdfjsLib.getDocument({
+      data:ab,
+      cMapUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked:true,
+      standardFontDataUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/',
+    }).promise;
+
+    pdfTotal=doc.numPages;
+    $('pdf-total-lbl').textContent=pdfTotal+' صفحة';
+
+    for(let i=1;i<=pdfTotal;i++){
+      const pg=await doc.getPage(i);
+      const tc=await pg.getTextContent({normalizeWhitespace:true,disableCombineTextItems:false,includeMarkedContent:false});
+      pdfPages.push(extractPageText(tc.items));
+    }
+
+    pdfCurPage=1; pdfReadIdx=0;
+    $('pdf-layout').style.display='grid';
+    $('text-card').style.display='flex';
+    $('pc-play').disabled=false;
+    updatePageUI();
+    renderTextPage(0);
+    // Build offline download UI
+    buildDLGrid();
+    $('offline-panel').style.display='block';
+    $('offline-player-box').style.display='block';
+    $('offline-toggle-wrap').style.display='block';
+    offlinePanelOpen=true;
+    showToast(`✅ تم تحميل ${pdfTotal} صفحة`);
+  }catch(e){
+    showToast('⚠️ خطأ: '+e.message); console.error(e);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   TEXT DISPLAY & WORD HIGHLIGHT
+═══════════════════════════════════════════ */
+function renderTextPage(idx){
+  const body=$('text-body'), lbl=$('text-pg-lbl');
+  if(!pdfPages[idx]){ body.innerHTML=''; return; }
+  lbl.textContent=`صفحة ${idx+1} من ${pdfTotal}`;
+  const txt=pdfPages[idx];
+  const rtl=isRTL(txt);
+  body.dir=rtl?'rtl':'ltr';
+  body.style.textAlign=rtl?'right':'left';
+  // Wrap words in spans
+  const parts=txt.split(/(\s+|\n)/);
+  let html='', wi=0;
+  parts.forEach(tok=>{
+    if(/^\s*$/.test(tok)) html+=tok.includes('\n')?'<br>':' ';
+    else { html+=`<span class="w" data-i="${wi}">${escH(tok)}</span>`; wi++; }
+  });
+  body.innerHTML=html;
+  wordSpans=body.querySelectorAll('.w');
+}
+
+function highlightByTime(ms){
+  if(!srtData.length||!wordSpans.length) return;
+  // Find word at current ms
+  for(let i=srtData.length-1;i>=0;i--){
+    if(ms>=srtData[i].start){
+      // Try to match SRT word to span index
+      const spanIdx=Math.min(i, wordSpans.length-1);
+      wordSpans.forEach((w,j)=>{
+        w.classList.remove('aw');
+        w.classList.toggle('dw', j<spanIdx);
+      });
+      if(wordSpans[spanIdx]){
+        wordSpans[spanIdx].classList.add('aw');
+        wordSpans[spanIdx].scrollIntoView({block:'nearest',behavior:'smooth'});
+      }
+      return;
+    }
+  }
+}
+
+function startSRTSync(audio, srt){
+  clearInterval(srtTimer);
+  srtData=parseSRT(srt);
+  if(!srtData.length){
+    // Fallback: time-based word sweep
+    const words=(wordSpans||[]).length;
+    if(!words) return;
+    let wi=0;
+    srtTimer=setInterval(()=>{
+      if(!audio||audio.paused) return;
+      const frac=audio.currentTime/Math.max(audio.duration,1);
+      wi=Math.floor(frac*words);
+      wordSpans.forEach((w,i)=>{
+        w.classList.toggle('aw',i===wi);
+        w.classList.toggle('dw',i<wi);
+      });
+      if(wordSpans[wi]) wordSpans[wi].scrollIntoView({block:'nearest',behavior:'smooth'});
+    },150);
+  } else {
+    srtTimer=setInterval(()=>{
+      if(!audio||audio.paused) return;
+      highlightByTime(audio.currentTime*1000);
+    },120);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   CORE TTS ENGINE — FreeTTS MP3
+═══════════════════════════════════════════ */
+function getRateStr(){ const v=$('pdf-rate').value; return (v>0?'+':'')+v+'%'; }
+function getPitchStr(){ const v=$('pdf-pitch').value; return (v>0?'+':'')+v+'Hz'; }
+
+// Split text into ≤950 char chunks at sentence boundaries
+function splitTextChunks(text, maxLen=900){
+  text=text.replace(/\r/g,' ').replace(/\n+/g,'، ').replace(/\s{2,}/g,' ').trim();
+  if(text.length<=maxLen) return [text];
+  const chunks=[];
+  let cur='';
+  // Split by sentence markers
+  const sentences=text.split(/([.!?؟،,;\n])/);
+  for(let i=0;i<sentences.length;i++){
+    const seg=sentences[i];
+    if((cur+seg).length>maxLen && cur.length>0){
+      chunks.push(cur.trim());
+      cur=seg;
+    } else { cur+=seg; }
+  }
+  if(cur.trim()) chunks.push(cur.trim());
+  return chunks.filter(c=>c.trim().length>0);
+}
+
+async function fetchSegments(text, voice, rate, pitch){
+  const chunks=splitTextChunks(text);
+  const segs=[];
+  for(let i=0;i<chunks.length;i++){
+    $('seg-status').textContent=`⏳ تحميل صوت ${i+1}/${chunks.length}...`;
+    try{
+      const s=await freeTTS(chunks[i], voice, rate, pitch);
+      segs.push({...s, text:chunks[i]});
+    }catch(e){
+      $('seg-status').textContent='⚠️ خطأ في تحميل الصوت: '+e.message;
+      throw e;
+    }
+  }
+  $('seg-status').textContent='';
+  return segs;
+}
+
+async function playPage(pageIdx){
+  if(pageIdx<0||pageIdx>=pdfTotal){ finishAll(); return; }
+  const txt=pdfPages[pageIdx]||'';
+  if(!txt.trim()){ pdfReadIdx++; pdfCurPage=pdfReadIdx+1; await playPage(pdfReadIdx); return; }
+
+  pdfReadIdx=pageIdx; pdfCurPage=pageIdx+1;
+  updatePageUI();
+  renderTextPage(pageIdx);
+  iframeGoPage(pdfCurPage);
+
+  const voice=selVoice.pdf.id;
+  const rate=getRateStr();
+  const pitch=getPitchStr();
+
+  $('player-stat').textContent=`⏳ يجهّز الصوت للصفحة ${pdfCurPage}...`;
+
+  try{
+    audioSegments=await fetchSegments(txt, voice, rate, pitch);
+  }catch(e){
+    $('player-stat').textContent='⚠️ فشل تحميل الصوت — تحقق من الاتصال';
+    isPlaying=false; $('pc-play').textContent='▶';
+    return;
+  }
+
+  segIdx=0;
+  playSegment();
+}
+
+function playSegment(){
+  if(segIdx>=audioSegments.length){
+    // Page done → next page
+    pdfReadIdx++;
+    if(pdfReadIdx<pdfTotal) playPage(pdfReadIdx);
+    else finishAll();
+    return;
+  }
+
+  const seg=audioSegments[segIdx];
+  if(audioEl){ audioEl.pause(); audioEl.src=''; }
+
+  audioEl=new Audio(seg.audioUrl);
+  audioEl.volume=isMuted?0:volLevel;
+  audioEl.playbackRate=1; // speed controlled via FreeTTS rate param
+
+  // Progress tracking
+  audioEl.addEventListener('loadedmetadata',()=>{
+    $('t-tot').textContent=fmtTime(audioEl.duration);
+  });
+  audioEl.addEventListener('timeupdate',()=>{
+    if(!audioEl.duration) return;
+    const frac=audioEl.currentTime/audioEl.duration;
+    // Page progress = (pageIdx + frac) / total
+    const overall=(pdfReadIdx+frac)/pdfTotal;
+    $('prog-fill').style.width=(overall*100).toFixed(1)+'%';
+    $('t-cur').textContent=fmtTime(audioEl.currentTime);
+  });
+  audioEl.addEventListener('ended',()=>{
+    clearInterval(srtTimer);
+    segIdx++;
+    if(isPlaying) playSegment();
+  });
+  audioEl.addEventListener('error',e=>{
+    clearInterval(srtTimer);
+    $('player-stat').textContent='⚠️ خطأ في الصوت — تخطي للجزء التالي';
+    segIdx++;
+    setTimeout(()=>{ if(isPlaying) playSegment(); },600);
+  });
+
+  $('player-stat').textContent=
+    `🔊 يقرأ صفحة ${pdfCurPage} من ${pdfTotal}${audioSegments.length>1?' (جزء '+(segIdx+1)+'/'+audioSegments.length+')':''}`;
+  $('pc-rew').disabled=false; $('pc-fwd').disabled=false;
+
+  startSRTSync(audioEl, seg.srt);
+  audioEl.play().catch(e=>{ console.warn('audio play error',e); });
+}
+
+/* ═══════════════════════════════════════════
+   PLAYER CONTROLS
+═══════════════════════════════════════════ */
+async function togglePlay(){
+  if(!pdfPages.length) return;
+  if(!isPlaying && !isPaused){
+    // Fresh start from current page
+    isPlaying=true; isPaused=false;
+    $('pc-play').textContent='⏸';
+    await playPage(pdfCurPage-1);
+  } else if(isPlaying && !isPaused){
+    // Pause
+    isPaused=true; isPlaying=false;
+    if(audioEl) audioEl.pause();
+    clearInterval(srtTimer);
+    $('pc-play').textContent='▶';
+    $('player-stat').textContent='متوقف مؤقتاً...';
+  } else if(isPaused){
+    // Resume
+    isPaused=false; isPlaying=true;
+    if(audioEl) audioEl.play();
+    $('pc-play').textContent='⏸';
+    $('player-stat').textContent=`يقرأ صفحة ${pdfCurPage} من ${pdfTotal}`;
+  }
+}
+
+function stopAll(){
+  isPlaying=false; isPaused=false;
+  clearInterval(srtTimer);
+  if(audioEl){ audioEl.pause(); audioEl.src=''; audioEl=null; }
+  $('pc-play').textContent='▶';
+  $('pc-rew').disabled=true; $('pc-fwd').disabled=true;
+  $('prog-fill').style.width='0%';
+  $('t-cur').textContent='0:00';
+  $('player-stat').textContent=pdfTotal?`موقف عند صفحة ${pdfCurPage}`:'جاهز للتشغيل';
+  $('seg-status').textContent='';
+  if(wordSpans) wordSpans.forEach(w=>w.classList.remove('aw','dw'));
+}
+
+async function goPage(dir){
+  const target=pdfCurPage-1+dir;
+  if(target<0||target>=pdfTotal) return;
+  const was=isPlaying;
+  stopAll();
+  pdfCurPage=target+1; pdfReadIdx=target;
+  renderTextPage(target);
+  updatePageUI();
+  iframeGoPage(pdfCurPage);
+  if(was){ isPlaying=true; $('pc-play').textContent='⏸'; await playPage(target); }
+}
+
+function seekFwd(){
+  if(audioEl && !audioEl.paused) audioEl.currentTime=Math.min(audioEl.currentTime+10, audioEl.duration-0.5);
+}
+function seekBack(){
+  if(audioEl) audioEl.currentTime=Math.max(0,audioEl.currentTime-10);
+}
+
+async function seekPage(e,wrap){
+  if(!pdfTotal) return;
+  const rect=wrap.querySelector('.prog-track').getBoundingClientRect();
+  const frac=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  const tp=Math.max(1,Math.min(pdfTotal,Math.ceil(frac*pdfTotal)));
+  const was=isPlaying;
+  stopAll();
+  pdfCurPage=tp; pdfReadIdx=tp-1;
+  renderTextPage(tp-1); updatePageUI(); iframeGoPage(tp);
+  $('prog-fill').style.width=(frac*100).toFixed(1)+'%';
+  if(was){ isPlaying=true; $('pc-play').textContent='⏸'; await playPage(tp-1); }
+  showToast('انتقل إلى صفحة '+tp);
+}
+
+function finishAll(){
+  isPlaying=false; isPaused=false;
+  $('pc-play').textContent='▶';
+  $('prog-fill').style.width='100%';
+  $('player-stat').textContent='✅ انتهت القراءة';
+  clearInterval(srtTimer);
+  showToast('✅ انتهت قراءة الملف');
+}
+
+function updatePageUI(){
+  $('pg-chip').textContent=`صفحة ${pdfCurPage} / ${pdfTotal}`;
+}
+
+function iframeGoPage(pg){
+  try{
+    if(pdfBlobUrl) $('pdf-iframe').src=pdfBlobUrl+'#page='+pg+'&toolbar=1&navpanes=1';
+  }catch(e){}
+}
+
+/* ── VOLUME ── */
+function setVol(v){
+  volLevel=parseFloat(v); isMuted=false;
+  $('vol-ic').textContent=volLevel===0?'🔇':volLevel<0.5?'🔉':'🔊';
+  $('vol-v').textContent=Math.round(volLevel*100)+'%';
+  updateVolGrad();
+  if(audioEl) audioEl.volume=volLevel;
+}
+function toggleMute(){
+  isMuted=!isMuted;
+  $('vol-ic').textContent=isMuted?'🔇':'🔊';
+  if(audioEl) audioEl.volume=isMuted?0:volLevel;
+}
+function updateVolGrad(){
+  const s=$('vol-sl'), p=(volLevel*100).toFixed(0);
+  s.style.background=`linear-gradient(to right,var(--gold) 0%,var(--gold) ${p}%,rgba(255,255,255,.12) ${p}%,rgba(255,255,255,.12) 100%)`;
+}
+updateVolGrad();
+
+/* ═══════════════════════════════════════════
+   TAB 2 — TRANSLATOR
+═══════════════════════════════════════════ */
+setupDrop('trans-drop',f=>loadTransFile(f));
+function handleTransFile(inp){ if(inp.files[0]) loadTransFile(inp.files[0]); }
+
+async function loadTransFile(file){
+  if(file.size>10*1024*1024){showToast('⚠️ الملف أكبر من ١٠ ميجا');return;}
+  $('trans-file-info').textContent=`📎 ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+  let text='';
+  if(file.type==='application/pdf'){
+    showToast('⏳ استخراج النص...');
+    const ab=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:ab,cMapUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',cMapPacked:true}).promise;
+    for(let i=1;i<=pdf.numPages;i++){
+      const pg=await pdf.getPage(i);
+      const tc=await pg.getTextContent({normalizeWhitespace:true,disableCombineTextItems:false});
+      text+=extractPageText(tc.items)+'\n';
+    }
+  } else { text=await file.text(); }
+  $('trans-in').value=text; transCount(); showToast('✅ تم تحميل الملف');
+}
+function transCount(){
+  const v=$('trans-in').value;
+  $('t-chars').textContent=v.length.toLocaleString();
+  $('t-words').textContent=(v.trim()?v.trim().split(/\s+/).length:0).toLocaleString();
+}
+async function doTranslate(){
+  const src=$('trans-in').value.trim();
+  if(!src){showToast('⚠️ أدخل نصاً');return;}
+  const btn=$('trans-btn'), status=$('trans-status');
+  btn.disabled=true; status.innerHTML='<span class="spin"></span>';
+  const srcL=$('trans-src').value, tgtL=$('trans-tgt').value;
+  const CHUNK=480; const chunks=[]; let out='';
+  for(let i=0;i<src.length;i+=CHUNK) chunks.push(src.slice(i,i+CHUNK));
+  try{
+    for(let ci=0;ci<chunks.length;ci++){
+      status.innerHTML=`<span class="badge bg-gold">ترجمة ${ci+1}/${chunks.length}...</span>`;
+      const r=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunks[ci])}&langpair=${srcL==='auto'?'en':srcL}|${tgtL}`);
+      const d=await r.json();
+      out+=(d.responseData?.translatedText||chunks[ci])+' ';
+    }
+    $('trans-out').value=out.trim();
+    $('trans-out').dir=tgtL.startsWith('ar')?'rtl':'ltr';
+    $('t-out-c').textContent=out.length.toLocaleString()+' حرف';
+    status.innerHTML='<span class="badge bg-green">✅ تمت</span>';
+  }catch{
+    status.innerHTML='<span class="badge bg-red">⚠️ لا إنترنت</span>';
+  }
+  btn.disabled=false;
+}
+
+let transAudio=null;
+async function speakTrans(){
+  const txt=$('trans-out').value.trim();
+  if(!txt){showToast('لا يوجد نص');return;}
+  stopTrans();
+  showToast('⏳ جاري تجهيز الصوت...');
+  try{
+    const rate=(()=>{const v=$('trans-rate').value;return (v>0?'+':'')+v+'%';})();
+    const chunks=splitTextChunks(txt);
+    let ci=0;
+    async function playNext(){
+      if(ci>=chunks.length) return;
+      const {audioUrl}=await freeTTS(chunks[ci], selVoice.trans.id, rate, '+0Hz');
+      transAudio=new Audio(audioUrl);
+      transAudio.volume=volLevel;
+      transAudio.onended=()=>{ci++;playNext();};
+      transAudio.play();
+    }
+    await playNext();
+    showToast('🔊 جاري القراءة...');
+  }catch(e){showToast('⚠️ خطأ في الصوت: '+e.message);}
+}
+function stopTrans(){if(transAudio){transAudio.pause();transAudio.src='';transAudio=null;}}
+function copyTrans(){const t=$('trans-out').value;if(t)navigator.clipboard.writeText(t).then(()=>showToast('📋 تم النسخ'));}
+function clearTrans(){
+  ['trans-in','trans-out'].forEach(id=>$(id).value='');
+  $('trans-file-info').textContent='';$('trans-status').innerHTML='';
+  $('t-out-c').textContent='0 حرف';$('t-chars').textContent='0';$('t-words').textContent='0';
+  stopTrans();
+}
+
+/* ═══════════════════════════════════════════
+   TAB 3 — BRIEF (AI + FreeTTS)
+═══════════════════════════════════════════ */
+let briefProv='groq', briefKey='';
+function selProv(p,btn){
+  briefProv=p;
+  document.querySelectorAll('.provider-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const inp=$('brief-key');
+  inp.placeholder=p==='groq'?'gsk_xxxxxxxxxxxxxxxx':'sk-or-v1-xxxxxxxx';
+  briefKey=localStorage.getItem('vh_'+p)||'';
+  inp.value=briefKey; updateKeyStatus();
+}
+function saveKey(){
+  const k=$('brief-key').value.trim();
+  if(!k){showToast('⚠️ أدخل المفتاح');return;}
+  briefKey=k; localStorage.setItem('vh_'+briefProv,k);
+  updateKeyStatus(); showToast('💾 تم الحفظ ✅');
+}
+function updateKeyStatus(){
+  $('key-status').innerHTML=briefKey
+    ?`<span style="color:var(--success)">✅ جاهز — ${briefProv==='groq'?'Groq Llama 3.3-70B':'OpenRouter'}</span>`
+    :`<span style="color:var(--gold)">⚠️ بدون مفتاح — تلخيص أساسي</span>`;
+}
+function toggleKey(){const i=$('brief-key');i.type=i.type==='password'?'text':'password';}
+function initKeys(){
+  briefKey=localStorage.getItem('vh_groq')||'';
+  if(briefKey) $('brief-key').value=briefKey;
+  updateKeyStatus();
+}
+initKeys();
+
+setupDrop('brief-drop',f=>loadBriefFile(f));
+function handleBriefFile(inp){ if(inp.files[0]) loadBriefFile(inp.files[0]); }
+async function loadBriefFile(file){
+  if(file.size>10*1024*1024){showToast('⚠️ الملف أكبر من ١٠ ميجا');return;}
+  $('brief-file-info').textContent=`📎 ${file.name}`;
+  let text='';
+  if(file.type==='application/pdf'){
+    showToast('⏳ استخراج النص...');
+    const ab=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:ab,cMapUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',cMapPacked:true}).promise;
+    for(let i=1;i<=Math.min(pdf.numPages,50);i++){
+      const pg=await pdf.getPage(i);
+      const tc=await pg.getTextContent({normalizeWhitespace:true,disableCombineTextItems:false});
+      text+=extractPageText(tc.items)+'\n';
+    }
+  } else { text=await file.text(); }
+  $('brief-in').value=text.trim();
+  $('brief-cc').textContent=text.trim().length.toLocaleString()+' chars';
+  showToast('✅ تم تحميل الملف');
+}
+$('brief-in').addEventListener('input',()=>{ $('brief-cc').textContent=$('brief-in').value.length.toLocaleString()+' chars'; });
+
+function buildBriefPrompt(text,len,style){
+  const nMap={short:'3 إلى 4',medium:'5 إلى 7',long:'8 إلى 10'};
+  const sMap={
+    egyptian:'اكتب باللهجة المصرية العامية الحقيقية. استخدم كلمات: إيه، ليه، عشان، بقى، يعني، كده، مش، هيبقى، لازم، تمام، أوي، برضو. ممنوع الفصحى.',
+    formal:'اكتب بالعربية الفصحى السليمة.',
+    simple:'لغة عربية بسيطة جداً، جمل قصيرة.'
+  };
+  return `أنت خبير تلخيص عربي محترف.\n\nلخّص النص في ${nMap[len]||'5 إلى 7'} نقاط.\n\nقواعد:\n- ${sMap[style]||sMap.egyptian}\n- كل نقطة تبدأ بـ "-"\n- ابدأ بالنقاط مباشرة\n- إملاء صحيح 100٪\n\nالنص:\n---\n${text.slice(0,12000)}\n---\n\nالملخص:`;
+}
+async function callGroq(p,k){
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',
+      messages:[{role:'system',content:'مساعد تلخيص عربي محترف.'},{role:'user',content:p}],
+      max_tokens:1500,temperature:0.3}),signal:AbortSignal.timeout(30000)
+  });
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||'Groq '+r.status);}
+  return (await r.json()).choices?.[0]?.message?.content?.trim()||'';
+}
+async function callOR(p,k){
+  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k,'HTTP-Referer':'https://voicehub.app','X-Title':'VoiceHub'},
+    body:JSON.stringify({model:'meta-llama/llama-3.3-70b-instruct:free',
+      messages:[{role:'system',content:'مساعد تلخيص عربي محترف.'},{role:'user',content:p}],
+      max_tokens:1500,temperature:0.3}),signal:AbortSignal.timeout(30000)
+  });
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||'OR '+r.status);}
+  return (await r.json()).choices?.[0]?.message?.content?.trim()||'';
+}
+function parsePts(raw){
+  const lines=raw.replace(/\r\n/g,'\n').split('\n').map(l=>l.trim()).filter(Boolean);
+  const pts=[];
+  for(const l of lines){
+    const c=l.replace(/^[-•*–◈]\s*/,'').replace(/^\d+[.\-\)]\s*/,'').trim();
+    if(c.length>5) pts.push(c);
+  }
+  return pts.length?pts:[raw];
+}
+async function basicBrief(txt,n,status){
+  const sents=(txt.replace(/\s+/g,' ')).match(/[^.!?؟]{20,}[.!?؟]?/g)||[txt];
+  const picked=sents.filter(s=>s.trim().length>30).slice(0,n*2);
+  const freq={}; picked.forEach(s=>s.toLowerCase().split(/\s+/).forEach(w=>{freq[w]=(freq[w]||0)+1;}));
+  const scored=picked.map((s,i)=>({s,score:s.toLowerCase().split(/\s+/).reduce((a,w)=>a+(freq[w]||0),0)+(picked.length-i)*0.4}));
+  scored.sort((a,b)=>b.score-a.score);
+  const top=scored.slice(0,n).sort((a,b)=>picked.indexOf(a.s)-picked.indexOf(b.s)).map(x=>x.s.trim());
+  const res=[];
+  for(let i=0;i<top.length;i++){
+    status.innerHTML=`<span class="badge bg-gold">ترجمة ${i+1}/${top.length}...</span>`;
+    try{
+      const r=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(top[i].slice(0,450))}&langpair=en|ar`,{signal:AbortSignal.timeout(7000)});
+      const d=await r.json();
+      res.push((d.responseData?.translatedText||top[i]).replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&'));
+    }catch{res.push(top[i]);}
+  }
+  return res;
+}
+
+async function genBrief(){
+  const raw=$('brief-in').value.trim();
+  if(!raw){showToast('⚠️ أدخل نصاً أو ارفع ملفاً');return;}
+  const btn=$('brief-btn'), status=$('brief-status'), out=$('brief-out'), qi=$('brief-qi');
+  const len=$('brief-len').value, style=$('brief-style').value;
+  const nMap={short:4,medium:6,long:9}; const n=nMap[len]||6;
+  btn.disabled=true; status.innerHTML='<span class="spin"></span>';
+  out.classList.remove('empty');
+  out.innerHTML='<div style="color:var(--muted);text-align:center;padding:24px"><span class="spin" style="width:24px;height:24px;border-width:3px"></span><div style="margin-top:10px;font-size:.84rem">جاري التلخيص...</div></div>';
+  qi.style.display='none';
+  let pts=[]; let usedAI=false; let err='';
+  if(briefKey){
+    try{
+      status.innerHTML=`<span class="badge bg-gold">🤖 ${briefProv==='groq'?'Groq':'OpenRouter'}...</span>`;
+      const rawOut=briefProv==='groq'?await callGroq(buildBriefPrompt(raw,len,style),briefKey):await callOR(buildBriefPrompt(raw,len,style),briefKey);
+      pts=parsePts(rawOut); usedAI=true;
+    }catch(e){
+      err=e.message||'خطأ';
+      status.innerHTML=`<span class="badge bg-gold">⚠️ ${err.slice(0,35)}...</span>`;
+      try{pts=await basicBrief(raw,n,status);}catch{pts=[raw.slice(0,300)];}
+    }
+  } else {
+    status.innerHTML='<span class="badge bg-gold">📝 تلخيص أساسي...</span>';
+    try{pts=await basicBrief(raw,n,status);}catch{pts=[raw.slice(0,300)];}
+  }
+  out.innerHTML='';
+  pts.forEach((pt,i)=>{
+    const d=document.createElement('div'); d.className='brief-point';
+    d.innerHTML=`<span class="brief-num">${i+1}</span><span class="brief-text">${escH(pt)}</span>`;
+    out.appendChild(d);
+  });
+  qi.style.display='block';
+  qi.innerHTML=usedAI
+    ?`<span class="quality-badge qb-ai">🤖 Llama 3.3-70B — ${briefProv==='groq'?'Groq':'OpenRouter'}</span>`
+    :`<span class="quality-badge qb-basic">📝 تلخيص أساسي — أضف مفتاح لجودة أعلى</span>`;
+  $('brief-speak').disabled=false;
+  status.innerHTML=usedAI?'<span class="badge bg-green">✅ تم</span>'
+    :(err?`<span class="badge bg-red">⚠️ ${err.slice(0,30)}</span>`:'<span class="badge bg-gold">✅ تم</span>');
+  showToast(usedAI?'✅ الملخص جاهز 🎉':'💡 أضف مفتاح Groq لجودة أفضل');
+  btn.disabled=false;
+}
+
+let briefAudio=null; let briefAudioQueue=[];
+async function speakBrief(){
+  const pts=[...($('brief-out').querySelectorAll('.brief-text'))].map(el=>el.textContent.trim()).filter(Boolean);
+  if(!pts.length){showToast('لا يوجد ملخص');return;}
+  stopBriefAudio();
+  showToast('⏳ جاري تجهيز الصوت...');
+  const rate=(()=>{const v=$('brief-rate').value;return (v>0?'+':'')+v+'%';})();
+  // Combine all points into one text for efficiency
+  const fullText=pts.map((p,i)=>`نقطة ${i+1}: ${p}`).join(' . ');
+  try{
+    const chunks=splitTextChunks(fullText);
+    let ci=0;
+    async function nextBrief(){
+      if(ci>=chunks.length) return;
+      const {audioUrl}=await freeTTS(chunks[ci], selVoice.brief.id, rate, '+0Hz');
+      briefAudio=new Audio(audioUrl);
+      briefAudio.volume=volLevel;
+      briefAudio.onended=()=>{ci++;nextBrief();};
+      briefAudio.play();
+    }
+    await nextBrief();
+    showToast('🔊 جاري قراءة الملخص...');
+  }catch(e){showToast('⚠️ خطأ: '+e.message);}
+}
+function stopBriefAudio(){if(briefAudio){briefAudio.pause();briefAudio.src='';briefAudio=null;}}
+function copyBrief(){
+  const pts=[...($('brief-out').querySelectorAll('.brief-text'))].map((el,i)=>`${i+1}. ${el.textContent.trim()}`).join('\n\n');
+  if(pts) navigator.clipboard.writeText(pts).then(()=>showToast('📋 تم النسخ'));
+}
+function clearBrief(){
+  $('brief-in').value=''; $('brief-out').innerHTML=''; $('brief-out').classList.add('empty');
+  $('brief-speak').disabled=true; $('brief-status').innerHTML=''; $('brief-file-info').textContent='';
+  $('brief-qi').style.display='none'; $('brief-cc').textContent='0 chars';
+  stopBriefAudio();
+}
+
+/* ═══════════════════════════════════════════
+   SERVICE WORKER
+═══════════════════════════════════════════ */
+// MP3 offline drop zone
+setupDrop('mp3-drop', f => {
+  if(f.type.startsWith('audio/') || f.name.endsWith('.mp3')){
+    const url=URL.createObjectURL(f);
+    const audio=$('offline-audio');
+    audio.src=url; audio.style.display='block'; audio.load();
+    $('offline-audio-name').textContent='🎵 '+f.name;
+    showToast('🎧 ملف MP3 جاهز للتشغيل');
+  } else { showToast('⚠️ يرجى رفع ملف MP3 أو صوتي'); }
+});
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a10a2404dc284a1f',t:'MTc4MjI4NzQxNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
